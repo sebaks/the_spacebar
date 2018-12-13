@@ -4,19 +4,18 @@ namespace App\Controller;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Response;
 
 class ArticleController extends AbstractController
 {
     /**
-     * @Route("/")
+     * @Route("/", name="app_homepage")
      */
     public function homepage()
     {
-        return new Response('This is my first page!');
+        return $this->render('article/homepage.html.twig');
     }
     /**
-     * @Route("/news/{slag}")
+     * @Route("/news/{slag}", name="article_show")
      */
     public function show($slag)
     {
