@@ -6,6 +6,7 @@ use Michelf\MarkdownInterface;
 use Psr\Log\LoggerInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 class ArticleController extends AbstractController
@@ -20,7 +21,7 @@ class ArticleController extends AbstractController
     /**
      * @Route("/news/{slag}", name="article_show")
      */
-    public function show($slag, MarkdownInterface $markdown)
+    public function show($slag, MarkdownInterface $markdown, AdapterInterface $cache)
     {
         $comments = [
             'Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old.',
@@ -28,11 +29,11 @@ class ArticleController extends AbstractController
             'Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of "de Finibus Bonorum et Malorum" (The Extremes of Good and Evil) by Cicero',
         ];
 
-        $arcticleContent = <<<EOF
+        $articleContent = <<<EOF
 Spicy **jalapeno bacon** ipsum dolor amet veniam shank in dolore. Ham hock nisi landjaeger cow,
 lorem proident [beef ribs](https://baconipsum.com/) aute enim veniam ut cillum pork chuck picanha. Dolore reprehenderit
 labore minim pork belly spare ribs cupim short loin in. Elit exercitation eiusmod dolore cow
-turkey shank eu pork belly meatball non cupim.
+**turkey** shank eu pork belly meatball non cupim.
 
 Laboris beef ribs fatback fugiat eiusmod jowl kielbasa alcatra dolore velit ea ball tip. PariaturK
 laboris sunt venison, et laborum dolore minim non meatball. Shankle eu flank aliqua shoulder,
@@ -46,14 +47,18 @@ strip steak pork belly aliquip capicola officia. Labore deserunt esse chicken lo
 cow est ribeye adipisicing. Pig hamburger pork belly enim. Do porchetta minim capicola irure pancetta chuck
 fugiat.
 EOF;
-
-        $arcticleContent = $markdown->transform($arcticleContent);
+        $item = $cache->getItem('markdown_'.md5($articleContent));
+        if (!$item->isHit()) {
+            $item->set($markdown->transform($articleContent));
+            $cache->save($item);
+        }
+        $articleContent = $item->get();
 
         return $this->render('article/show.html.twig', [
             'title' => ucfirst(str_replace('-', ' ', $slag)),
             'slag' => $slag,
             'comments' => $comments,
-            'arcticleContent' => $arcticleContent,
+            'articleContent' => $articleContent,
         ]);
     }
 
