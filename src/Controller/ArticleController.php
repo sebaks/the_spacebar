@@ -2,11 +2,10 @@
 
 namespace App\Controller;
 
-use Michelf\MarkdownInterface;
+use App\Service\MarkdownHelper;
 use Psr\Log\LoggerInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 class ArticleController extends AbstractController
@@ -21,7 +20,7 @@ class ArticleController extends AbstractController
     /**
      * @Route("/news/{slag}", name="article_show")
      */
-    public function show($slag, MarkdownInterface $markdown, AdapterInterface $cache)
+    public function show($slag, MarkdownHelper $markdownHelper)
     {
         $comments = [
             'Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old.',
@@ -47,12 +46,7 @@ strip steak pork belly aliquip capicola officia. Labore deserunt esse chicken lo
 cow est ribeye adipisicing. Pig hamburger pork belly enim. Do porchetta minim capicola irure pancetta chuck
 fugiat.
 EOF;
-        $item = $cache->getItem('markdown_'.md5($articleContent));
-        if (!$item->isHit()) {
-            $item->set($markdown->transform($articleContent));
-            $cache->save($item);
-        }
-        $articleContent = $item->get();
+        $articleContent = $markdownHelper->parse($articleContent);
 
         return $this->render('article/show.html.twig', [
             'title' => ucfirst(str_replace('-', ' ', $slag)),
