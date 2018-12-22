@@ -8,21 +8,39 @@ use Symfony\Component\Cache\Adapter\AdapterInterface;
 
 class MarkdownHelper
 {
+    /**
+     * @var AdapterInterface
+     */
     private $cache;
+    /**
+     * @var MarkdownInterface
+     */
     private $markdown;
-    private $logger;
+    /**
+     * @var LoggerInterface
+     */
+    private $markdownLogger;
+    /**
+     * @var bool
+     */
+    private $isDebug;
 
-    public function __construct(AdapterInterface $cache, MarkdownInterface $markdown, LoggerInterface $logger)
+    public function __construct(AdapterInterface $cache, MarkdownInterface $markdown, LoggerInterface $markdownLogger, bool $isDebug)
     {
         $this->cache = $cache;
         $this->markdown = $markdown;
-        $this->logger = $logger;
+        $this->markdownLogger = $markdownLogger;
+        $this->isDebug = $isDebug;
     }
 
     public function parse(string $source): string
     {
         if (stripos($source, 'bacon') !== false) {
-            $this->logger->info('They are talking about bacon again!');
+            $this->markdownLogger->info('They are talking about bacon again!');
+        }
+
+        if ($this->isDebug) {
+            return $this->markdown->transform($source);
         }
 
         $item = $this->cache->getItem('markdown_'.md5($source));
