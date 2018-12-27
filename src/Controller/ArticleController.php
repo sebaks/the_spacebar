@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Service\MarkdownHelper;
+use Nexy\Slack\Client;
 use Psr\Log\LoggerInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -31,8 +32,16 @@ class ArticleController extends AbstractController
     /**
      * @Route("/news/{slag}", name="article_show")
      */
-    public function show($slag, MarkdownHelper $markdownHelper)
+    public function show($slag, MarkdownHelper $markdownHelper, Client $slack)
     {
+        if ($slag === 'khaaaaaan') {
+            $message = $slack->createMessage()
+                ->from('Khan')
+                ->withIcon(':ghost:')
+                ->setText('Ah, Kirk, my old friend...');
+            $slack->sendMessage($message);
+        }
+
         $comments = [
             'Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old.',
             'Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source.',
