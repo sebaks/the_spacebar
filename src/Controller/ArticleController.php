@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Article;
+use App\Repository\ArticleRepository;
 use App\Service\SlackClient;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
@@ -26,10 +27,9 @@ class ArticleController extends AbstractController
     /**
      * @Route("/", name="app_homepage")
      */
-    public function homepage(EntityManagerInterface $entityManager)
+    public function homepage(ArticleRepository $articleRepository)
     {
-        $articleRepository = $entityManager->getRepository(Article::class);
-        $articles = $articleRepository->findBy([], ['publishedAt' => 'DESC']);
+        $articles = $articleRepository->findAllPublishedOrderedByNewest();
 
         return $this->render('article/homepage.html.twig', [
             'articles' => $articles,
@@ -38,13 +38,12 @@ class ArticleController extends AbstractController
     /**
      * @Route("/news/{slug}", name="article_show")
      */
-    public function show($slug, SlackClient $slack, EntityManagerInterface $entityManager)
+    public function show($slug, SlackClient $slack, ArticleRepository $articleRepository)
     {
         if ($slug === 'khaaaaaan') {
             $slack->sendMessage('Khan', 'Ah, Kirk, my old friend...');
         }
 
-        $articleRepository = $entityManager->getRepository(Article::class);
         $article = $articleRepository->findOneBy(['slug' => $slug]);
         if (!$article) {
             throw $this->createNotFoundException(sprintf('No article for slug "%s"', $slug));
